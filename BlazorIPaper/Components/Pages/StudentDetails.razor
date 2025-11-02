@@ -1,0 +1,167 @@
+﻿@page "/studentdetails"
+@page "/studentform"
+@rendermode InteractiveServer
+@inject NavigationManager NavManager
+
+<div>
+    <p>Fill the Form to Register</p>
+    <h3>StudentDetails</h3>
+    <EditForm Model="student">
+        <label style="margin:5px">
+            Name <InputText @bind-Value="@student.Name"></InputText>
+        </label>
+        <br />
+        <label style="margin:5px">
+            Email <InputText @bind-Value="@student.Email"></InputText>
+        </label>
+        <br />
+        <label style="margin:5px">
+            Age <input type="number" @bind="@student.Age"></input>
+        </label>
+        <br />
+        <label style="margin:5px">
+            Course
+            <input dropzone="CourseList" />
+        </label>
+        <br />
+        <button @onclick="()=>SaveData(studentDetails.Count,student.StudentId)">SAVE</button>
+        <button>CANCEL</button>
+        <br />
+        @if (errorMsg != "")
+        {
+            <p>@errorMsg</p>
+        }
+    </EditForm>
+    @if (studentDetails == null || studentDetails.Count == 0)
+    {
+        <div>
+            <table class="table-bordered">
+                <thead>
+                    <tr>
+                        <th class="col" style="width:20%">Student ID</th>
+                        <th class="col" style="width:20%">Name</th>
+                        <th class="col" style="width:20%">Email</th>
+                        <th class="col" style="width:20%">Age</th>
+                        <th class="col" style="width:20%">Course</th>
+                        <th class="col" style="width:20%"></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div>
+            <table class="table-bordered">
+                <thead>
+                    <tr>
+                        <th class="col" style="width:20%">Student ID</th>
+                        <th class="col" style="width:20%">Name</th>
+                        <th class="col" style="width:20%">Email</th>
+                        <th class="col" style="width:20%">Age</th>
+                        <th class="col" style="width:20%">Course</th>
+                        <th class="col" style="width:20%">Action</th>
+                    </tr>
+                    @foreach (var student in studentDetails)
+                    {
+                        <tr>
+                            <td class="col" style="width:20%">@student.StudentId</td>
+                            <td class="col" style="width:20%">@student.Name</td>
+                            <td class="col" style="width:20%">@student.Email</td>
+                            <td class="col" style="width:20%">@student.Age</td>
+                            <td class="col" style="width:20%">@student.Course</td>
+                            <td class="col" style="width:20%">
+                                <button class="btn btn-primary" @onclick="() => EditDetails(student.StudentId)">Edit</button>
+                                <a style="text-decoration:underline;color:lightskyblue" class="link" @onclick="(() => DeleteData(student.StudentId))">DELETE</a>
+                            </td>
+                        </tr>
+                    }
+                </thead>
+            </table>
+        </div>
+
+    }
+
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private List<Student> studentDetails { get; set; } = new List<Student>();
+    private Student student = new Student();
+    public string errorMsg { get; set; } = "";
+    public enum CourseList
+    {
+        Btech,
+        MBA
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(2000);
+        studentDetails = new List<Student>
+        {
+                new Student
+                {
+                    StudentId = 1,
+                    Name = "John",
+                    Email = "john@gmail.com",
+                    Age = 20,
+                    Course = "B.Tech"
+                },
+                new Student
+                {
+                    StudentId = 2,
+                    Name = "Daniel",
+                    Email = "Daniel@gmail.com",
+                    Age= 22,
+                    Course = "MBA"
+                },
+                new Student
+                {
+                    StudentId = 3,
+                    Name = "Lucy",
+                    Email = "lucy@gmail.com",
+                    Age= 21,
+                    Course = "MBA"
+                },
+                new Student
+                {
+                    StudentId = 4,
+                    Name = "Tracy",
+                    Email = "tracy@gmail.com",
+                    Age= 19,
+                    Course = "B.Tech"
+                }                
+        };
+    }
+
+    public void EditDetails(int studentId)
+    {
+        student = studentDetails.Where(x => x.StudentId == studentId).FirstOrDefault();
+    }
+
+    public void DeleteData(int studentId)
+    {
+        var studentdeleted = studentDetails.Where(x => x.StudentId == studentId).FirstOrDefault();
+        studentDetails.Remove(studentdeleted);
+    }
+
+    public void SaveData(int studentcount, int studentId)
+    {
+        if (studentId == 0 && !string.IsNullOrEmpty(student.Name))
+        {
+            student.StudentId = studentcount + 1;
+            studentDetails.Add(student);
+        }
+        else if(!string.IsNullOrEmpty(student.Name))
+        {
+            Student studentdeleted = studentDetails.Where(x => x.StudentId == studentId).FirstOrDefault()!;
+            studentDetails.Remove(studentdeleted);
+            student.StudentId = studentId;
+            studentDetails.Add(student);
+        }
+        else
+        {
+            errorMsg = "Please fill the mandatory data";
+        }
+    }
+}
