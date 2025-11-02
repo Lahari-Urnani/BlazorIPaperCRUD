@@ -1,11 +1,28 @@
 ﻿@page "/studentdetails"
 @page "/studentform"
+@using BlazorIPaper.Services
+@rendermode InteractiveServer
+@inject NavigationManager NavManager
+@inject IJSRuntime JS
+@inject ExcelExportService ExcelExportService
+
+<script>
+    function downloadFileFromStream(fileName, base64Data) {
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + base64Data;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
 @rendermode InteractiveServer
 @inject NavigationManager NavManager
 
 <div>
     <p>Fill the Form to Register</p>
     <h3>StudentDetails</h3>
+    <button class="btn btn-primary" @onclick="DownloadExcel">Download Excel</button>
     <EditForm Model="student">
         <label style="margin:5px">
             Name <InputText @bind-Value="@student.Name"></InputText>
@@ -163,5 +180,13 @@
         {
             errorMsg = "Please fill the mandatory data";
         }
+    }
+
+    private async Task DownloadExcel()
+    {
+        var bytes = ExcelExportService.ExportStudentsToExcel(studentDetails);
+        var fileName = "StudentDetails.xlsx";
+
+        await JS.InvokeVoidAsync("downloadFileFromStream", fileName, Convert.ToBase64String(bytes));
     }
 }
